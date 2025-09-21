@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use("Agg")   # 🔹 Must be set before importing pyplot
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -7,12 +10,14 @@ import datetime as dt
 import yfinance as yf
 from sklearn.preprocessing import MinMaxScaler
 import os
+
 plt.style.use("fivethirtyeight")
+
 
 app = Flask(__name__)
 
 # Load the model (make sure your model is in the correct path)
-model = load_model('stock_dl_model.h5')
+model = load_model('Research/stock_dl_model.h5')
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -47,7 +52,7 @@ def index():
         
         # Prepare data for prediction
         past_100_days = data_training.tail(100)
-        final_df = past_100_days.append(data_testing, ignore_index=True)
+        final_df = pd.concat([past_100_days, data_testing], ignore_index=True)
         input_data = scaler.fit_transform(final_df)
         
         x_test, y_test = [], []
@@ -113,9 +118,10 @@ def index():
                                plot_path_ema_100_200=ema_chart_path_100_200, 
                                plot_path_prediction=prediction_chart_path, 
                                data_desc=data_desc.to_html(classes='table table-bordered'),
-                               dataset_link=csv_file_path)
+                               dataset_link=csv_file_path,
+                               stock=stock)
 
-    return render_template('index.html')
+    return render_template('index.html', stock="POWERGRID.NS")
 
 @app.route('/download/<filename>')
 def download_file(filename):
